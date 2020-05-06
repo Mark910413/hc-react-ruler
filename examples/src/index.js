@@ -23,8 +23,10 @@ class App extends React.Component {
   }
   changeVal(e) {
     let val = e.target.value;
-    const reg = /^[-+]?([1-9][0-9]+)|([0-9]+\.?[0-9]*)?$/;
+    // const reg = /^[-+]?([0-9]*)|([0-9]+\.?([0-9]+)?)$/;
+    const reg = /^[0-9]*$/;
     if (!reg.test(val)) {return false};
+    val = parseInt(val, 10);
     if (val > Config.end) {
       val = Config.end;
     };
@@ -38,7 +40,7 @@ class App extends React.Component {
   render() {
     const { value } = this.state;
     return (
-      <div>
+      <div className="wrapper">
         <input value={value} onChange={this.changeVal}/>
         <Ruler {...Config} value={value} onChange={(val) => {this.setState({value: val})}} />
       </div>

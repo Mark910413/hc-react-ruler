@@ -2,6 +2,9 @@
     margin: 0;
     padding: 0;
 }
+.wrapper{
+    margin-top: 100px;
+}
 input{
     display: block;
     width: 100%;
