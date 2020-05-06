@@ -9,7 +9,7 @@ $ npm i hc-react-ruler
 
 ## 🚀 How to use
 ```javascript
-import Ruler as React from "hc-react-ruler";
+import Ruler from "hc-react-ruler";
 
 ...
 
