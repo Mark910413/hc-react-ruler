@@ -2,22 +2,24 @@ class Ruler {
   constructor(options) {
     this.ver = '1.0.0';
     this.options = options;
+
+    this.pixelRatio = window.devicePixelRatio || 1;
     this.options.scaleplate = this.options.scaleplate === undefined ? {} : this.options.scaleplate;
     this.options.scaleplate.color = this.options.scaleplate.color === undefined ? '#f00' : this.options.scaleplate.color; // 刻度颜色
-    this.options.scaleplate.width = this.options.scaleplate.width === undefined ? 1 : this.options.scaleplate.width; // 刻度宽度
-    this.options.scaleplate.fontsize = this.options.scaleplate.fontsize === undefined ? 12 : this.options.scaleplate.fontsize;// 刻度值字体大小
+    this.options.scaleplate.width = (this.options.scaleplate.width === undefined ? 1 : this.options.scaleplate.width) * this.pixelRatio; // 刻度宽度
+    this.options.scaleplate.fontsize = (this.options.scaleplate.fontsize === undefined ? 12 : this.options.scaleplate.fontsize) * this.pixelRatio;// 刻度值字体大小
     this.options.scaleplate.fontcolor = this.options.scaleplate.fontcolor === undefined ? '#f00' : this.options.scaleplate.fontcolor;// 刻度值字体颜色
     this.options.scaleplate.fontfamily = this.options.scaleplate.fontfamily === undefined ? 'Courier New' : this.options.scaleplate.fontfamily; // 刻度值字体样式
 
     this.options.centerLine = this.options.centerLine === undefined ? {} : this.options.centerLine;
-    this.options.centerLine.width = this.options.centerLine.width === undefined ? 2 : this.options.centerLine.width;
+    this.options.centerLine.width = (this.options.centerLine.width === undefined ? 2 : this.options.centerLine.width) * this.pixelRatio;
     this.options.centerLine.linecolor = this.options.centerLine.linecolor === undefined ? '#f00' : this.options.centerLine.linecolor;
     this.options.centerLine.height = this.options.centerLine.height === undefined ? '0.8' : this.options.centerLine.height;
     this.options.scaleplate.fullLineHeight = this.options.fullLineHeight === undefined ? '0.6' : this.options.fullLineHeight;
     this.options.scaleplate.halfLineHeight = this.options.fullLineHeight === undefined ? '0.4' : this.options.halfLineHeight;
     this.options.scaleplate.lineHeight = this.options.lineHeight === undefined ? '0.3' : this.options.lineHeight;
 
-    this.options.unit = this.options.unit === undefined ? 10 : this.options.unit; // 刻度间隔，默认值10
+    this.options.unit = (this.options.unit === undefined ? 10 : this.options.unit) * this.pixelRatio; // 刻度间隔，默认值10
     this.options.value = this.options.value === undefined ? this.options.start : this.options.value; // 中心线位置，默认值为开始值
     this.options.background = this.options.background === undefined ? '#fff' : this.options.background; // 画布背景色，默认白色
     this.options.linecolor = this.options.linecolor === undefined ? '#000' : this.options.linecolor; // 中心线颜色，默认黑色
@@ -27,28 +29,36 @@ class Ruler {
     this.timer = null;
     this.init();
   }
-  init() {
+  init() { 
     this.canvas = (typeof this.options.elem) === 'string' ? document.querySelector(this.options.elem) : this.options.elem;
+    this.options.width = this.options.width ? (this.options.width * this.pixelRatio) : 200;
+    this.options.height = this.options.height ? (this.options.height * this.pixelRatio) : 100;
+
     this.canvas.width = this.options.width;
-    this.canvas.height = this.options.height + (this.options.scaleplate.fontsize * 1.5);
+    this.canvas.height = (this.options.height + (this.options.scaleplate.fontsize * 1.5)) ;
+    
     this.addEvent();
     this.renderCanvas();
   }
   renderCanvas(setValue = false) {
     const ctx = this.canvas.getContext('2d');
     const {options = {} } = this;
+    const canvasWidth = this.canvas.width;
+    const canvasHeight = this.canvas.height;
     // 两个端点的对moveDistance的取值
     this.moveDistance = this.moveDistance >= 0 ? 0 : this.moveDistance;
-    this.moveDistance = -this.moveDistance >= (options.end / options.capacity) * options.unit ? -(options.end / options.capacity) * options.unit : this.moveDistance;
+    this.moveDistance = -this.moveDistance >= (options.end / options.capacity) * options.unit ? - (options.end / options.capacity) * options.unit : this.moveDistance;
 
     // 显示的值
     const bitArr = options.capacity.toString().split('.');
-    const bitNum = bitArr[1] ? bitArr[1].length : 0;
+    const bitNum = bitArr[1] ? bitArr[1].length : 0; // 保证除法运算时的精度
     options.value = (Math.ceil(Math.abs(this.moveDistance) / options.unit) * ((10 ** bitNum) * options.capacity)) / (10 ** bitNum);
 
     let i = 0;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.lineWidth = options.scaleplate.width;
+    console.log('options.scaleplate.width', options.scaleplate.width);
+    console.log(options.width);
     for (i; ((i * options.unit) + (this.moveDistance + (options.width / 2)) < options.width) && (i * options.capacity <= options.end); i++) {
       // 画刻度线 x轴坐标
       const x = (i * options.unit) + (this.moveDistance + (options.width / 2));
@@ -85,11 +95,13 @@ class Ruler {
     ctx.closePath();
 
     // 标尺底部线
+    
     ctx.beginPath();
-    ctx.moveTo(0, this.options.height);
-    ctx.lineTo(this.canvas.width, this.options.height);
-    ctx.strokeStyle = options.scaleplate.color;
-    ctx.lineWidth = options.scaleplate.width;
+    ctx.moveTo(0, this.options.height - 1);
+    console.log(0, this.options.height);
+    ctx.lineTo(this.options.width, this.options.height - 1);
+    ctx.strokeStyle =  options.scaleplate.color;
+    ctx.lineWidth = options.scaleplate.width * 1;
     ctx.stroke();
     ctx.closePath();
     if (this.options.onChange && !setValue) {

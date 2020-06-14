@@ -3,7 +3,7 @@ import { render} from 'react-dom';
 import Ruler from '../../src';
 import './style.css';
 const Config = {
-  rate: 1.5,
+  rate: 3,
   height: 50,
   start: 0,
   end: 100,

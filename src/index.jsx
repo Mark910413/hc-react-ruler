@@ -44,7 +44,7 @@ class RulerEle extends React.Component {
   render() {
     return (
       <div className="ruler-dom">
-        <canvas ref={(el) => { this.canvas = el; }} id="ruler" width="100%" style={{width: '100%', display: 'block'}} />
+        <canvas ref={(el) => { this.canvas = el; }} id="ruler"  style={{width: '100%', display: 'block', height: '71px'}} />
       </div>
     );
   }
