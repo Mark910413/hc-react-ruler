@@ -57,8 +57,6 @@ class Ruler {
     let i = 0;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.lineWidth = options.scaleplate.width;
-    console.log('options.scaleplate.width', options.scaleplate.width);
-    console.log(options.width);
     for (i; ((i * options.unit) + (this.moveDistance + (options.width / 2)) < options.width) && (i * options.capacity <= options.end); i++) {
       // 画刻度线 x轴坐标
       const x = (i * options.unit) + (this.moveDistance + (options.width / 2));
@@ -98,7 +96,6 @@ class Ruler {
     
     ctx.beginPath();
     ctx.moveTo(0, this.options.height - 1);
-    console.log(0, this.options.height);
     ctx.lineTo(this.options.width, this.options.height - 1);
     ctx.strokeStyle =  options.scaleplate.color;
     ctx.lineWidth = options.scaleplate.width * 1;
