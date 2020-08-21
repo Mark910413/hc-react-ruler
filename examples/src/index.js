@@ -4,13 +4,13 @@ import Ruler from '../../src';
 import './style.css';
 const Config = {
   rate: 3,
-  height: 50,
+  height: 43,
   start: 0,
   end: 100,
   capacity: 1,
   unit: 15,
-  centerLine: { linecolor: '#3ECEB6', width: '1', height: '0.8'},
-  scaleplate: { color: '#D8D8D8', fontsize: '14', width: '1', fontcolor: '#D8D8D8', halfLineHeight: '0.4', lineHeight: '0.3', fullLineHeight: '0.6'},
+  centerLine: { linecolor: '#3ECEB6', width: '2', height: '0.7'},
+  scaleplate: { color: '#D8D8D8', fontsize: '14', width: '1', fontcolor: '#D8D8D8', halfLineHeight: '0.5', lineHeight: '0.3', fullLineHeight: '0.5'},
   value: 10
 }
 class App extends React.Component {

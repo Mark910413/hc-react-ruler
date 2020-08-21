@@ -3,6 +3,7 @@ class Ruler {
     this.ver = '1.0.0';
     this.options = options;
 
+    console.log(options);
     this.pixelRatio = window.devicePixelRatio || 1;
     this.options.scaleplate = this.options.scaleplate === undefined ? {} : this.options.scaleplate;
     this.options.scaleplate.color = this.options.scaleplate.color === undefined ? '#f00' : this.options.scaleplate.color; // 刻度颜色
@@ -15,9 +16,9 @@ class Ruler {
     this.options.centerLine.width = (this.options.centerLine.width === undefined ? 2 : this.options.centerLine.width) * this.pixelRatio;
     this.options.centerLine.linecolor = this.options.centerLine.linecolor === undefined ? '#f00' : this.options.centerLine.linecolor;
     this.options.centerLine.height = this.options.centerLine.height === undefined ? '0.8' : this.options.centerLine.height;
-    this.options.scaleplate.fullLineHeight = this.options.fullLineHeight === undefined ? '0.6' : this.options.fullLineHeight;
-    this.options.scaleplate.halfLineHeight = this.options.fullLineHeight === undefined ? '0.4' : this.options.halfLineHeight;
-    this.options.scaleplate.lineHeight = this.options.lineHeight === undefined ? '0.3' : this.options.lineHeight;
+    this.options.scaleplate.fullLineHeight = this.options.scaleplate.fullLineHeight === undefined ? '0.6' : this.options.scaleplate.fullLineHeight;
+    this.options.scaleplate.halfLineHeight = this.options.scaleplate.fullLineHeight === undefined ? '0.4' : this.options.scaleplate.halfLineHeight;
+    this.options.scaleplate.lineHeight = this.options.scaleplate.lineHeight === undefined ? '0.3' : this.options.scaleplate.lineHeight;
 
     this.options.unit = (this.options.unit === undefined ? 10 : this.options.unit) * this.pixelRatio; // 刻度间隔，默认值10
     this.options.value = this.options.value === undefined ? this.options.start : this.options.value; // 中心线位置，默认值为开始值
@@ -31,12 +32,12 @@ class Ruler {
   }
   init() { 
     this.canvas = (typeof this.options.elem) === 'string' ? document.querySelector(this.options.elem) : this.options.elem;
+    this.canvas.style.height = this.options.height + (this.options.scaleplate.fontsize/this.pixelRatio) * 1.5 + 'px';
+    console.log(this.options.height + this.options.scaleplate.fontsize/this.pixelRatio) * 1.5;
     this.options.width = this.options.width ? (this.options.width * this.pixelRatio) : 200;
     this.options.height = this.options.height ? (this.options.height * this.pixelRatio) : 100;
-
-    this.canvas.width = this.options.width;
+    this.canvas.width = this.options.width; 
     this.canvas.height = (this.options.height + (this.options.scaleplate.fontsize * 1.5)) ;
-    
     this.addEvent();
     this.renderCanvas();
   }
