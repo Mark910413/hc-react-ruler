@@ -1,39 +1,58 @@
 class Ruler {
   constructor(options) {
-    this.ver = '1.0.0';
-    this.options = options;
-
-    console.log(options);
+    this.ver = '1.0.4';
+    const { scaleplate = {}, centerLine = {} } = options;
     this.pixelRatio = window.devicePixelRatio || 1;
-    this.options.scaleplate = this.options.scaleplate === undefined ? {} : this.options.scaleplate;
-    this.options.scaleplate.color = this.options.scaleplate.color === undefined ? '#f00' : this.options.scaleplate.color; // 刻度颜色
-    this.options.scaleplate.width = (this.options.scaleplate.width === undefined ? 1 : this.options.scaleplate.width) * this.pixelRatio; // 刻度宽度
-    this.options.scaleplate.fontsize = (this.options.scaleplate.fontsize === undefined ? 12 : this.options.scaleplate.fontsize) * this.pixelRatio;// 刻度值字体大小
-    this.options.scaleplate.fontcolor = this.options.scaleplate.fontcolor === undefined ? '#f00' : this.options.scaleplate.fontcolor;// 刻度值字体颜色
-    this.options.scaleplate.fontfamily = this.options.scaleplate.fontfamily === undefined ? 'Courier New' : this.options.scaleplate.fontfamily; // 刻度值字体样式
+    
+    // 基本样式配置
+    const defaultConfig = {
+      unit: 10, // 刻度间隔，默认值10
+      start: 0, // 中心线位置，默认值为开始值
+      background: '#fff', // 画布背景色，默认白色
+      linecolor: '#000', // 中心线颜色，默认黑色
+      capacity: 1, // 每个刻度代表的值
+      rate: 1, // 实际滑动距离与手指滑动距离比值  灵敏度
+    };
+    // 刻度样式配置
+    const defaultScaleplate = {
+      color: '#f00', // 刻度线颜色
+      width: 1,  // 刻度线宽度
+      fontsize: 12, // 刻度值字体大小 
+      fontcolor: 'f00', // 刻度值字体颜色
+      fontfamily: 'Courier New', //  刻度值字体样式
+      fullLineHeight: '0.6',
+      halfLineHeight: 0.4,
+      lineHeight: '0.3',
+    };
+    // 中心线配置 
+    const defaultCenterLine = {
+      width: 2,
+      linecolor: '#f00',
+      height: 0.8,
+    }
+    // 入参处理
+    const mergeScaleplate = {...defaultScaleplate, ...scaleplate};
+    const mergeCenterLine = {...defaultCenterLine, ...centerLine};
+    const mergeOptions = {...defaultConfig, ...options, scaleplate: mergeScaleplate, centerLine: mergeCenterLine};
+    this.options = mergeOptions;
 
-    this.options.centerLine = this.options.centerLine === undefined ? {} : this.options.centerLine;
-    this.options.centerLine.width = (this.options.centerLine.width === undefined ? 2 : this.options.centerLine.width) * this.pixelRatio;
-    this.options.centerLine.linecolor = this.options.centerLine.linecolor === undefined ? '#f00' : this.options.centerLine.linecolor;
-    this.options.centerLine.height = this.options.centerLine.height === undefined ? '0.8' : this.options.centerLine.height;
-    this.options.scaleplate.fullLineHeight = this.options.scaleplate.fullLineHeight === undefined ? '0.6' : this.options.scaleplate.fullLineHeight;
-    this.options.scaleplate.halfLineHeight = this.options.scaleplate.fullLineHeight === undefined ? '0.4' : this.options.scaleplate.halfLineHeight;
-    this.options.scaleplate.lineHeight = this.options.scaleplate.lineHeight === undefined ? '0.3' : this.options.scaleplate.lineHeight;
+    this.options.scaleplate.width = this.options.scaleplate.width * this.pixelRatio; // 刻度宽度
+    this.options.scaleplate.fontsize =  this.options.scaleplate.fontsize * this.pixelRatio; // 刻度值字体大小
 
-    this.options.unit = (this.options.unit === undefined ? 10 : this.options.unit) * this.pixelRatio; // 刻度间隔，默认值10
+    this.options.centerLine.width = this.options.centerLine.width * this.pixelRatio; // 中心线宽度
+    this.options.centerLine.height = this.options.centerLine.height * this.pixelRatio;; // 中心线高度
+    
+    this.options.unit = this.options.unit * this.pixelRatio; // 刻度间隔，默认值10
     this.options.value = this.options.value === undefined ? this.options.start : this.options.value; // 中心线位置，默认值为开始值
-    this.options.background = this.options.background === undefined ? '#fff' : this.options.background; // 画布背景色，默认白色
-    this.options.linecolor = this.options.linecolor === undefined ? '#000' : this.options.linecolor; // 中心线颜色，默认黑色
-    this.options.capacity = this.options.capacity === undefined ? 1 : this.options.capacity; // 每个刻度代表的值
-    this.moveDistance = -(this.options.value / this.options.capacity) * this.options.unit;// 滑动的距离
-    this.options.rate = this.options.rate ? this.options.rate : 1;
+
+    this.moveDistance = -(this.options.value / this.options.capacity) * this.options.unit; // 滑动的距离
     this.timer = null;
     this.init();
   }
   init() { 
     this.canvas = (typeof this.options.elem) === 'string' ? document.querySelector(this.options.elem) : this.options.elem;
     this.canvas.style.height = this.options.height + (this.options.scaleplate.fontsize/this.pixelRatio) * 1.5 + 'px';
-    console.log(this.options.height + this.options.scaleplate.fontsize/this.pixelRatio) * 1.5;
+
     this.options.width = this.options.width ? (this.options.width * this.pixelRatio) : 200;
     this.options.height = this.options.height ? (this.options.height * this.pixelRatio) : 100;
     this.canvas.width = this.options.width; 
