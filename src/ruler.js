@@ -1,9 +1,11 @@
 class Ruler {
   constructor(options) {
     this.ver = '1.0.4';
+    this.removeEventFn = null;
+    this.pixelRatio = window.devicePixelRatio || 2;
+    this.timer = null;
+
     const { scaleplate = {}, centerLine = {} } = options;
-    this.pixelRatio = window.devicePixelRatio || 1;
-    
     // 基本样式配置
     const defaultConfig = {
       unit: 10, // 刻度间隔，默认值10
@@ -12,6 +14,8 @@ class Ruler {
       linecolor: '#000', // 中心线颜色，默认黑色
       capacity: 1, // 每个刻度代表的值
       rate: 1, // 实际滑动距离与手指滑动距离比值  灵敏度
+      width: 200, // 宽度
+      height: 100,
     };
     // 刻度样式配置
     const defaultScaleplate = {
@@ -40,23 +44,25 @@ class Ruler {
     this.options.scaleplate.fontsize =  this.options.scaleplate.fontsize * this.pixelRatio; // 刻度值字体大小
 
     this.options.centerLine.width = this.options.centerLine.width * this.pixelRatio; // 中心线宽度
-    this.options.centerLine.height = this.options.centerLine.height * this.pixelRatio;; // 中心线高度
+    this.options.centerLine.height = this.options.centerLine.height * this.pixelRatio; // 中心线高度
     
     this.options.unit = this.options.unit * this.pixelRatio; // 刻度间隔，默认值10
     this.options.value = this.options.value === undefined ? this.options.start : this.options.value; // 中心线位置，默认值为开始值
 
     this.moveDistance = -(this.options.value / this.options.capacity) * this.options.unit; // 滑动的距离
-    this.timer = null;
+    
     this.init();
   }
   init() { 
-    this.canvas = (typeof this.options.elem) === 'string' ? document.querySelector(this.options.elem) : this.options.elem;
-    this.canvas.style.height = this.options.height + (this.options.scaleplate.fontsize/this.pixelRatio) * 1.5 + 'px';
+    this.wrapperDom = (typeof this.options.elem) === 'string' ? document.querySelector(this.options.elem) : this.options.elem;
+    this.canvas = document.createElement('canvas');
+    this.canvas.style.height = this.options.height + (this.options.scaleplate.fontsize / this.pixelRatio) * 1.5 + 'px';
+    this.options.width = this.options.width * this.pixelRatio;
+    this.options.height = this.options.height * this.pixelRatio;
+    this.canvas.width = parseInt(this.options.width); 
+    this.canvas.height = parseInt(this.options.height + (this.options.scaleplate.fontsize * 1.5));
+    this.wrapperDom.appendChild(this.canvas);
 
-    this.options.width = this.options.width ? (this.options.width * this.pixelRatio) : 200;
-    this.options.height = this.options.height ? (this.options.height * this.pixelRatio) : 100;
-    this.canvas.width = this.options.width; 
-    this.canvas.height = (this.options.height + (this.options.scaleplate.fontsize * 1.5)) ;
     this.addEvent();
     this.renderCanvas();
   }
@@ -66,10 +72,12 @@ class Ruler {
     const canvasWidth = this.canvas.width;
     const canvasHeight = this.canvas.height;
     // 两个端点的对moveDistance的取值
+    // 向左边拖是正数 但dom的移动是负数 所以 这里要取反
     this.moveDistance = this.moveDistance >= 0 ? 0 : this.moveDistance;
     this.moveDistance = -this.moveDistance >= (options.end / options.capacity) * options.unit ? - (options.end / options.capacity) * options.unit : this.moveDistance;
 
     // 显示的值
+    // 处理小数
     const bitArr = options.capacity.toString().split('.');
     const bitNum = bitArr[1] ? bitArr[1].length : 0; // 保证除法运算时的精度
     options.value = (Math.ceil(Math.abs(this.moveDistance) / options.unit) * ((10 ** bitNum) * options.capacity)) / (10 ** bitNum);
@@ -113,7 +121,6 @@ class Ruler {
     ctx.closePath();
 
     // 标尺底部线
-    
     ctx.beginPath();
     ctx.moveTo(0, this.options.height - 1);
     ctx.lineTo(this.options.width, this.options.height - 1);
@@ -150,50 +157,81 @@ class Ruler {
     let curX;
     let startTime;
     let endTime;
+    let sliding = false;
+    const _this = this;
     // 添加手指触碰屏幕时的touchstart事件
-    this.canvas.addEventListener('touchstart', (e) => {
+    this.canvas.addEventListener('touchstart', touchStartFn, false);
+    this.canvas.addEventListener('mousedown', touchStartFn, false);
+    // 添加手指滑动屏幕时的touchmove事件
+    this.canvas.addEventListener('touchmove', touchMoveFn, false);
+    this.canvas.addEventListener('mousemove', touchMoveFn, false);
+    // 结束滑动
+    this.canvas.addEventListener('touchend', touchEndFn, false);
+    this.canvas.addEventListener('touchout', touchEndFn, false);
+    this.canvas.addEventListener('mouseup', touchEndFn, false);
+    this.canvas.addEventListener('mouseout', touchEndFn, false);
+
+    function touchStartFn (e) {
+      sliding = true;
       e.stopPropagation();
       e.preventDefault();
       startTime = (new Date()).getTime();
-      x = e.touches[0].clientX; // 获取第一个手指对象的X轴坐标值
+      x = e.clientX || e.touches[0].clientX; // 获取第一个手指对象的X轴坐标值
       startX = x;
-    }, false);
-    // 添加手指滑动屏幕时的touchmove事件
-    this.canvas.addEventListener('touchmove', (e) => {
+    }
+    function touchMoveFn(e) {
       e.stopPropagation();
       e.preventDefault();
-      if (this.timer) {
-        window.cancelAnimationFrame(this.timer);
+      if (!sliding) { return false; }
+      if (_this.timer) {
+        window.cancelAnimationFrame(_this.timer);
       }
-      curX = e.touches[0].clientX;
-      this.moveDistance += (curX - x) * this.options.rate;
+      curX = e.clientX || e.touches[0].clientX;
+      _this.moveDistance += (curX - x) * _this.options.rate;
       x = curX;
-      this.renderCanvas();
-    }, false);
-    this.canvas.addEventListener('touchend', (e) => {
+      _this.renderCanvas();
+    }
+    function touchEndFn(e) {
       e.stopPropagation();
       e.preventDefault();
+      if (!sliding) { return; }
+      sliding = false;
       endTime = (new Date()).getTime();
-      curX = e.changedTouches[0].clientX;
+      curX = e.clientX || e.changedTouches[0].clientX;
       const totalTime = endTime - startTime;
-      const totalX = (curX - startX) * this.options.rate;
-      const that = this;
+      const totalX = (curX - startX) * _this.options.rate;
       let curSpeed = parseInt((totalX / totalTime) * 1000, 10);
       function move() {
-        const distanceUnit = Math.abs(that.moveDistance % that.options.unit) - (totalX >= 0 ? 0 : that.options.unit);
+        const distanceUnit = Math.abs(_this.moveDistance % _this.options.unit) - (totalX >= 0 ? 0 : _this.options.unit);
         if (Math.abs(curSpeed) <= 50) {
-          that.moveDistance += distanceUnit;
-          that.renderCanvas();
+          _this.moveDistance += distanceUnit;
+          _this.renderCanvas();
           return false;
         } else {
-          that.moveDistance += curSpeed / 60; // 1/60 60帧刚好
-          that.renderCanvas();
+          _this.moveDistance += curSpeed / 60; // 1/60 60帧刚好
+          _this.renderCanvas();
           curSpeed -= curSpeed / 10; // 每次衰减
         }
-        that.timer = window.requestAnimationFrame(move);
+        _this.timer = window.requestAnimationFrame(move);
       }
       move();
-    }, false);
+    }
+    
+    this.removeEventFn = () => {
+      this.canvas.removeEventListener('touchstart', touchStartFn);
+      this.canvas.removeEventListener('mousedown', touchStartFn);
+      this.canvas.removeEventListener('touchmove', touchMoveFn);
+      this.canvas.removeEventListener('mousemove', touchMoveFn);
+      this.canvas.removeEventListener('touchend', touchEndFn);
+      this.canvas.removeEventListener('touchout', touchEndFn);
+      this.canvas.removeEventListener('mouseup', touchEndFn);
+      this.canvas.removeEventListener('mouseout', touchEndFn);
+    }
+  }
+  destory() {
+    if (this.removeEventFn && this.canvas) { this.removeEventFn(); }
+    this.wrapperDom.removeChild(this.canvas);
+    this.canvas = null;
   }
 }
 

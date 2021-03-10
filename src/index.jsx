@@ -19,6 +19,9 @@ class RulerEle extends React.Component {
       this.ruler.setValue(nextProps.value);
     }
   }
+  componentWillUnmount() {
+    this.ruler.destory();
+  }
   drawRuler(options) {
     const {height = 50, start = 0, end = 100, capacity = 1, value = 0, unit = 10, centerLine = {}, scaleplate = {}, onChange = () => {}, rate = 1} = options;
     /* eslint-disable no-new */
@@ -41,10 +44,14 @@ class RulerEle extends React.Component {
       },
     });
   }
+  destoryRuler () {
+    this.ruler.destory();
+  }
   render() {
     return (
-      <div className="ruler-dom">
-        <canvas ref={(el) => { this.canvas = el; }} id="ruler"  style={{width: '100%', display: 'block', height: '71px'}} />
+      <div className="box">
+        <div className="ruler-dom" ref={(el) => { this.canvas = el; }} id="ruler"  style={{width: '100%', display: 'block', height: '71px'}} />
+        {/* <button onClick={this.destoryRuler.bind(this)}>destory</button> */}
       </div>
     );
   }
