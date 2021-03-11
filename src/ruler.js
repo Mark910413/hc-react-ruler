@@ -1,10 +1,19 @@
 class Ruler {
   constructor(options) {
-    this.ver = '1.0.4';
+    this.ver = '1.0.5';
+    this.init(options);
+  }
+  init(options) {
+    this.destory();
     this.removeEventFn = null;
     this.pixelRatio = window.devicePixelRatio || 2;
     this.timer = null;
-
+    this.optionInit(options);
+    this.domInit();
+    this.addEvent();
+    this.renderCanvas();
+  }
+  optionInit(options) {
     const { scaleplate = {}, centerLine = {} } = options;
     // 基本样式配置
     const defaultConfig = {
@@ -50,10 +59,8 @@ class Ruler {
     this.options.value = this.options.value === undefined ? this.options.start : this.options.value; // 中心线位置，默认值为开始值
 
     this.moveDistance = -(this.options.value / this.options.capacity) * this.options.unit; // 滑动的距离
-    
-    this.init();
   }
-  init() { 
+  domInit() {
     this.wrapperDom = (typeof this.options.elem) === 'string' ? document.querySelector(this.options.elem) : this.options.elem;
     this.canvas = document.createElement('canvas');
     this.canvas.style.height = this.options.height + (this.options.scaleplate.fontsize / this.pixelRatio) * 1.5 + 'px';
@@ -62,9 +69,6 @@ class Ruler {
     this.canvas.width = parseInt(this.options.width); 
     this.canvas.height = parseInt(this.options.height + (this.options.scaleplate.fontsize * 1.5));
     this.wrapperDom.appendChild(this.canvas);
-
-    this.addEvent();
-    this.renderCanvas();
   }
   renderCanvas(setValue = false) {
     const ctx = this.canvas.getContext('2d');
@@ -76,8 +80,7 @@ class Ruler {
     this.moveDistance = this.moveDistance >= 0 ? 0 : this.moveDistance;
     this.moveDistance = -this.moveDistance >= (options.end / options.capacity) * options.unit ? - (options.end / options.capacity) * options.unit : this.moveDistance;
 
-    // 显示的值
-    // 处理小数
+    // 显示的值 处理小数
     const bitArr = options.capacity.toString().split('.');
     const bitNum = bitArr[1] ? bitArr[1].length : 0; // 保证除法运算时的精度
     options.value = (Math.ceil(Math.abs(this.moveDistance) / options.unit) * ((10 ** bitNum) * options.capacity)) / (10 ** bitNum);
@@ -229,8 +232,10 @@ class Ruler {
     }
   }
   destory() {
-    if (this.removeEventFn && this.canvas) { this.removeEventFn(); }
-    this.wrapperDom.removeChild(this.canvas);
+    if (this.removeEventFn && this.canvas) { 
+      this.removeEventFn(); 
+      this.wrapperDom.removeChild(this.canvas);
+    }
     this.canvas = null;
   }
 }

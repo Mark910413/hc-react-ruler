@@ -53,7 +53,6 @@ class App extends React.Component {
         <input value={value} onChange={this.changeVal}/>
         <Ruler {...Config} value={value} onChange={(val) => {this.setState({value: val})}} />
       </div>
-      
     );
   }
 }
